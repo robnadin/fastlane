@@ -113,6 +113,8 @@ module Trainer
         type = data["_type"]["_name"]
         if type == "ActionTestSummaryGroup"
           return ActionTestSummaryGroup.new(data, parent)
+        elsif type == "ActionTestSummary"
+          return ActionTestSummary.new(data, parent)
         elsif type == "ActionTestMetadata"
           return ActionTestMetadata.new(data, parent)
         else
@@ -130,16 +132,39 @@ module Trainer
     class ActionTestSummaryGroup < ActionTestSummaryIdentifiableObject
       attr_accessor :duration
       attr_accessor :subtests
+      attr_accessor :tags
       def initialize(data, parent)
         self.duration = fetch_value(data, "duration").to_f
         self.subtests = fetch_values(data, "subtests").map do |subtests_data|
           ActionTestSummaryIdentifiableObject.create(subtests_data, self)
+        end
+        self.tags = fetch_values(data, "tags").map do |tag|
+          fetch_value(tag, "name")
         end
         super(data, parent)
       end
 
       def all_subtests
         return subtests.map(&:all_subtests).flatten
+      end
+    end
+
+    # - ActionTestSummary
+    #   * Supertype: ActionTestSummaryIdentifiableObject
+    #   * Kind: object
+    #   * Properties:
+    #     + failure_summaries: [ActionTestFailureSummary]?
+    class ActionTestSummary < ActionTestSummaryIdentifiableObject
+      attr_accessor :failure_summaries
+      def initialize(data, parent)
+        self.failure_summaries = fetch_values(data, "failureSummaries").map do |summary_data|
+          ActionTestFailureSummary.new(summary_data)
+        end
+        super(data, parent)
+      end
+
+      def all_subtests
+        [self]
       end
     end
 
@@ -153,18 +178,21 @@ module Trainer
     #     + performanceMetricsCount: Int
     #     + failureSummariesCount: Int
     #     + activitySummariesCount: Int
+    #     + summaryRef: Reference
     class ActionTestMetadata < ActionTestSummaryIdentifiableObject
       attr_accessor :test_status
       attr_accessor :duration
       attr_accessor :performance_metrics_count
       attr_accessor :failure_summaries_count
       attr_accessor :activity_summaries_count
+      attr_accessor :summary_ref
       def initialize(data, parent)
         self.test_status = fetch_value(data, "testStatus")
         self.duration = fetch_value(data, "duration").to_f
         self.performance_metrics_count = fetch_value(data, "performanceMetricsCount")
         self.failure_summaries_count = fetch_value(data, "failureSummariesCount")
         self.activity_summaries_count = fetch_value(data, "activitySummariesCount")
+        self.summary_ref = Reference.new(data['summaryRef']) if data['summaryRef']
         super(data, parent)
       end
 
@@ -172,9 +200,7 @@ module Trainer
         return [self]
       end
 
-      def find_failure(failures)
-        sanitizer = proc { |name| name.gsub(/\W/, "_") }
-        sanitized_identifier = sanitizer.call(self.identifier)
+      def find_failure(summaries)
         if self.test_status == "Failure"
           # Tries to match failure on test case name
           # Example TestFailureIssueSummary:
@@ -185,16 +211,43 @@ module Trainer
           #   identifier: "TestThisDude/testFailureJosh2()" (when Swift)
           #     or identifier: "TestThisDude/testFailureJosh2" (when Objective-C)
 
-          found_failure = failures.find do |failure|
-            # Sanitize both test case name and identifier in a consistent fashion, then replace all non-word
-            # chars with underscore, and compare them
-            sanitized_test_case_name = sanitizer.call(failure.test_case_name)
-            sanitized_identifier == sanitized_test_case_name
+          found_summary = summaries.find do |summary|
+            self.identifier == summary.identifier
           end
-          return found_failure
+          if found_summary
+            return found_summary.failure_summaries.first
+          else
+            return nil
+          end
         else
           return nil
         end
+      end
+    end
+
+    # - ActionTestFailureSummary
+    #   * Kind: object
+    #   * Properties:
+    #     + message: String?
+    #     + fileName: String
+    #     + lineNumber: Int
+    #     + isPerformanceFailure: Boolean?
+    class ActionTestFailureSummary < AbstractObject
+      attr_accessor :message
+      attr_accessor :file_name
+      attr_accessor :line_number
+      attr_accessor :performance_failure
+      def initialize(data)
+        self.message = fetch_value(data, 'message')
+        self.file_name = fetch_value(data, 'fileName')
+        self.line_number = fetch_value(data, 'lineNumber').to_i
+        self.performance_failure = fetch_value(data, 'isPerformanceFailure').to_boolean if data['isPerformanceFailure']
+        super
+      end
+
+      def failure_message
+        # "#{message} (#{file_name}:#{line_number})"
+        "#{message} (#{file_name}#CharacterRangeLen=0&EndingLineNumber=#{line_number-1}&StartingLineNumber=#{line_number-1})"
       end
     end
 

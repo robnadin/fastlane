@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="9" failures="2">
+    <testsuite name="SwiftTestingTests" tests="6" failures="2" skipped="0" time="0.0030069351196289062">
+        <properties>
+          <property name="Configuration" value="Test Scheme Action"/>
+        </properties>
+        <testcase classname="SwiftTestingTests.SomeSubtests" name="nestedTestWithTag()" time="0.0003409385681152344">
+        </testcase>
+        <testcase classname="SwiftTestingTests.SomeSubtests" name="failure()" time="0.0010700225830078125">
+            <failure message="Expectation failed: true == false (/Users/rob.nadin/Developer/SwiftTesting/SwiftTestingTests/SwiftTestingTests.swift#CharacterRangeLen=0&amp;EndingLineNumber=32&amp;StartingLineNumber=32)">
+            </failure>
+        </testcase>
+        <testcase classname="SwiftTestingTests" name="performanceExample()" time="0.0001220703125">
+        </testcase>
+        <testcase classname="SwiftTestingTests" name="someFailure()" time="0.0011599063873291016">
+            <failure message="Expectation failed: 1 == 2 (/Users/rob.nadin/Developer/SwiftTesting/SwiftTestingTests/SwiftTestingTests.swift#CharacterRangeLen=0&amp;EndingLineNumber=26&amp;StartingLineNumber=26)">
+            </failure>
+        </testcase>
+        <testcase classname="SwiftTestingTests" name="example()" time="0.00026488304138183594">
+        </testcase>
+        <testcase classname="SuiteWithTags" name="hello()" time="4.9114227294921875e-05">
+        </testcase>
+    </testsuite>
+    <testsuite name="SwiftTestingUITests" tests="3" failures="0" skipped="0" time="54.087112069129944">
+        <properties>
+          <property name="Configuration" value="Test Scheme Action"/>
+        </properties>
+        <testcase classname="SwiftTestingUITestsLaunchTests" name="testLaunch()" time="6.473291039466858">
+        </testcase>
+        <testcase classname="SwiftTestingUITestsLaunchTests" name="testLaunch()" time="4.4036349058151245">
+        </testcase>
+        <testcase classname="SwiftTestingUITestsLaunchTests" name="testLaunch()" time="9.328528046607971">
+        </testcase>
+        <testcase classname="SwiftTestingUITestsLaunchTests" name="testLaunch()" time="4.186591029167175">
+        </testcase>
+        <testcase classname="SwiftTestingUITests" name="testExample()" time="2.7906709909439087">
+        </testcase>
+        <testcase classname="SwiftTestingUITests" name="testLaunchPerformance()" time="26.904396057128906">
+        </testcase>
+    </testsuite>
+</testsuites>

@@ -13,6 +13,7 @@ gem "coveralls", "~> 0.8.13"
 gem "danger", "~> 8.0"
 # Plugin for Danger that reports JUnit test results.
 gem "danger-junit", "~> 1.0"
+gem "debug"
 # A fake filesystem.
 # Version 1.9+ requires Ruby >=2.7, while fastlane uses a `required_ruby_version` of `>= 2.6`.
 gem "fakefs", "1.8"
@@ -43,6 +44,8 @@ gem "rubocop", Fastlane::RUBOCOP_REQUIREMENT
 gem "rubocop-performance"
 # A RuboCop extension focused on enforcing tools.
 gem "rubocop-require_tools"
+gem "ruby-lsp"
+gem "ruby-lsp-rspec", require: false
 # Used to mock servers.
 gem "sinatra", [">= 2.2.3", "< 3.0"]
 # A library for stubbing and setting expectations on HTTP requests.

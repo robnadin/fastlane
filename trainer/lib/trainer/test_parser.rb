@@ -245,17 +245,35 @@ module Trainer
         Trainer::XCResult::ActionTestPlanRunSummaries.new(json)
       end
 
-      # Converts the ActionTestPlanRunSummaries to data for junit generator
-      failures = actions_invocation_record.issues.test_failure_summaries || []
-      summaries_to_data(summaries, failures, output_remove_retry_attempts: output_remove_retry_attempts)
-    end
-
-    def summaries_to_data(summaries, failures, output_remove_retry_attempts: false)
       # Gets flat list of all ActionTestableSummary
       all_summaries = summaries.map(&:summaries).flatten
       testable_summaries = all_summaries.map(&:testable_summaries).flatten
 
+      # Gets flat list of all ActionTestMetadata that failed
+      failed_tests = testable_summaries.map do |testable_summary|
+        testable_summary.all_tests.find_all { |a| a.test_status == 'Failure' }
+      end.flatten
+
+      # Find a list of all ids for ActionTestSummary
+      summary_ids = failed_tests.map do |test|
+        test.summary_ref.id
+      end
+
+      # Maps summary references into array of ActionTestSummary by executing xcresulttool to get JSON
+      # containing more information for each test failure,
+      failures = summary_ids.map do |id|
+        raw = execute_cmd("#{xcresulttool_cmd} --id #{id}")
+        json = JSON.parse(raw)
+        Trainer::XCResult::ActionTestSummary.new(json, nil)
+      end
+
+      # Converts the ActionTestPlanRunSummaries to data for junit generator
+      summaries_to_data(all_summaries, testable_summaries, failures, output_remove_retry_attempts: output_remove_retry_attempts)
+    end
+
+    def summaries_to_data(all_summaries, testable_summaries, failures, output_remove_retry_attempts: false)
       summaries_to_names = test_summaries_to_configuration_names(all_summaries)
+      sanitizer = proc { |name| name.gsub("/", ".") }
 
       # Maps ActionTestableSummary to rows for junit generator
       rows = testable_summaries.map do |testable_summary|
@@ -267,7 +285,7 @@ module Trainer
         tests_by_identifier = {}
 
         test_rows = all_tests.map do |test|
-          identifier = "#{test.parent.name}.#{test.name}"
+          identifier = sanitizer.call(test.identifier)
           test_row = {
             identifier: identifier,
             name: test.name,
@@ -296,10 +314,10 @@ module Trainer
           failure = test.find_failure(failures)
           if failure
             test_row[:failures] = [{
-              file_name: "",
-              line_number: 0,
-              message: "",
-              performance_failure: {},
+              file_name: failure.file_name,
+              line_number: failure.line_number,
+              message: failure.message,
+              performance_failure: failure.performance_failure,
               failure_message: failure.failure_message
             }]
 
@@ -310,6 +328,13 @@ module Trainer
           else
             info[:success_count] = 1
           end
+
+          # unless test.tags.empty?
+          #   test_row[:properties] = test.tags.map do |name|
+          #     { name: "tag", value: name }
+          #   end
+          # end
+          test_row[:properties] = []
 
           tests_by_identifier[identifier] = info
 

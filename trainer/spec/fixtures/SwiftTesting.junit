@@ -4,9 +4,9 @@
         <properties>
           <property name="Configuration" value="Test Scheme Action"/>
         </properties>
-        <testcase classname="SwiftTestingTests.SomeSubtests" name="nestedTestWithTag()" time="0.0003409385681152344">
+        <testcase classname="SomeSubtests" name="nestedTestWithTag()" time="0.0003409385681152344">
         </testcase>
-        <testcase classname="SwiftTestingTests.SomeSubtests" name="failure()" time="0.0010700225830078125">
+        <testcase classname="SomeSubtests" name="failure()" time="0.0010700225830078125">
             <failure message="Expectation failed: true == false (/Users/rob.nadin/Developer/SwiftTesting/SwiftTestingTests/SwiftTestingTests.swift#CharacterRangeLen=0&amp;EndingLineNumber=32&amp;StartingLineNumber=32)">
             </failure>
         </testcase>

@@ -21,6 +21,14 @@ task(:test_all) do
   run_rspec(command)
 end
 
+task(:test_trainer) do
+  formatter = "--format progress"
+  formatter += " -r rspec_junit_formatter --format RspecJunitFormatter -o #{ENV['CIRCLE_TEST_REPORTS']}/rspec/fastlane-junit-results.xml" if ENV["CIRCLE_TEST_REPORTS"]
+  command = "rspec --pattern ./trainer/**/*_spec.rb #{formatter} #{ENV['RSPEC_ARGS']}"
+
+  run_rspec(command)
+end
+
 def run_rspec(command)
   # To move Ruby 3.0 or next major version migration going forward, we want to keep monitoring deprecation warnings
   if Gem.win_platform?
